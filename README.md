@@ -1,9 +1,8 @@
-# \[Group name\]
+# \[rpb672\]
 
 **Group members:**
-- A
-- B
-- C
+- Otto Rosenberg - rpb672
+
 
 This repository contains  
 1. Inaugural project. 
