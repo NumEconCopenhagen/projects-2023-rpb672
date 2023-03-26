@@ -1,5 +1,11 @@
-# Inaugural project
+# \[rpb672\]
 
-The **results** of the project can be seen from running [inauguralproject.ipynb](inauguralproject.ipynb).
+**Group members:**
+- Otto Rosenberg (rpb672)
 
-**Dependencies:** Apart from a standard Anaconda Python 3 installation, the project requires no further packages.
+To read this project run the file inauguralproject.ipynb
+
+This repository contains  
+1. Inaugural project. 
+2. More to come..
+3. 
