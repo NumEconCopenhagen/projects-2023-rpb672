@@ -138,7 +138,7 @@ class Household:
         return opt
 
 
-    def solve_wF_vec(self,discrete=False):
+    def solve_wF_vec(self):
         """ solve model for vector of female wages """
         
         par = self.par
@@ -149,7 +149,7 @@ class Household:
             par.wF = wF
 
             # Reporting optimal values to solution vectors
-            opt = self.solve()
+            opt = self.solve_con()
             sol.HF_vec[i]=opt.HF
             sol.HM_vec[i]=opt.HM
 
@@ -166,30 +166,27 @@ class Household:
         y = np.log(sol.HF_vec/sol.HM_vec)
         A = np.vstack([np.ones(x.size),x]).T
         sol.beta0,sol.beta1 = np.linalg.lstsq(A,y,rcond=None)[0]
-    
-    def deviation(self, alpha, sigma):
-        "calculating the deviation of the regression"
-        par = self.par
 
-
-        par.alpha = alpha
-        par.sigma = sigma
-        run = self.run_regression()
-        err = ((par.beta0_target - run.beta0)**2+(par.beta1_target-run.beta1)**2)
-        return err
     
     def estimate(self,alpha=None,sigma=None):
         """ estimate alpha and sigma """
         par = self.par
         sol = self.sol
 
-        bounds = ((0.8,1),(0.01,0.2)) # bounds chosen through trial and error
-
-        objective = lambda x: self.deviation(x[0], x[1])
-        result = optimize.minimize(objective, method = 'Nelder-Mead', bounds=bounds, tol = 10e-8)
+        def deviation(x):
+            "calculating the deviation of the regression"
+            par.alpha = x[0]
+            par.sigma = x[1]
+            self.solve_wF_vec()
+            self.run_regression()
+            sol.err = ((par.beta0_target - sol.beta0)**2+(par.beta1_target-sol.beta1)**2)
+            return sol.err       
+        bounds = ((0.5,1.0),(0.01,0.2)) # bounds chosen through trial and error
+        guess = [0.75,0.1]
+        result = optimize.minimize(deviation, x0 = guess, method = 'Nelder-Mead', bounds=bounds, tol = 10e-6)
 
         sol.alpha = result.x[0]
         sol.sigma = result.x[1]
 
-        return sol
+        print(f'Estimated alpha from data = {sol.alpha:6.4f}, and sigma = {sol.sigma:6.4f}. Deviation was = {sol.err}')
 
