@@ -185,8 +185,9 @@ class Household:
         guess = [0.75,0.1]
         result = optimize.minimize(deviation, x0 = guess, method = 'Nelder-Mead', bounds=bounds, tol = 10e-6)
 
+        #unpack results
         sol.alpha = result.x[0]
         sol.sigma = result.x[1]
-
+        #print results
         print(f'Estimated alpha from data = {sol.alpha:6.4f}, and sigma = {sol.sigma:6.4f}. Deviation was = {sol.err}')
 
