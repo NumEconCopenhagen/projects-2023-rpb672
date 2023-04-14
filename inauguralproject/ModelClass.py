@@ -181,8 +181,8 @@ class Household:
             self.run_regression()
             sol.err = ((par.beta0_target - sol.beta0)**2+(par.beta1_target-sol.beta1)**2)
             return sol.err       
-        bounds = ((0.5,1.0),(0.01,0.2)) # bounds chosen through trial and error
-        guess = [0.75,0.1]
+        bounds = ((0.5,1),(0.05,0.5)) # bounds chosen through trial and error
+        guess = [0.75,0.3]
         result = optimize.minimize(deviation, x0 = guess, method = 'Nelder-Mead', bounds=bounds, tol = 10e-6)
 
         #unpack results
