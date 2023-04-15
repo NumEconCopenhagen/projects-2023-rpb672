@@ -73,6 +73,7 @@ class Household:
         epsilon_ = 1+1/par.epsilon
         TM = LM+HM
         TF = LF+HF
+        # Added extention. The original disutillity function is a special case of this, where par.extention=False, i.e. 0, thus negating the last term.
         disutility = par.nu*(TM**epsilon_/epsilon_+TF**epsilon_/epsilon_)+par.extention*(par.ext_F*LF**epsilon_/epsilon_)
         
 
@@ -178,34 +179,37 @@ class Household:
         par = self.par
         sol = self.sol
 
+
+        # Objective function to be minimized
         def deviation(x):
-            "calculating the deviation of the regression"
             par.alpha = x[0]
             par.sigma = x[1]
+            # Calculating the deviation
             self.solve_wF_vec()
             self.run_regression()
             sol.err = ((par.beta0_target - sol.beta0)**2+(par.beta1_target-sol.beta1)**2)
             return sol.err       
-        bounds = ((0.5,1),(0.05,0.5)) # bounds chosen through trial and error
-        guess = [0.75,0.3]
+        bounds = ((0.5,1),(0.05,0.5)) # bounds chosen by trial and error
+        guess = [0.75,0.3] # initial guess
         result = optimize.minimize(deviation, x0 = guess, method = 'Nelder-Mead', bounds=bounds, tol = 10e-8)
 
         #unpack results
         sol.alpha = result.x[0]
         sol.sigma = result.x[1]
         #print results
-        print(f'Estimated alpha from data = {sol.alpha:6.4f}, and sigma = {sol.sigma:6.4f}. Deviation was = {sol.err}')
+        print(f'Estimated alpha from data = {sol.alpha:6.4f}, and sigma = {sol.sigma:6.4f}. Deviation was = {sol.err:6.4f}')
 
     
     def estimate_ext(self,alpha=0.5,sigma=None):
-        """ estimate ext_F and ext_M """
+        """ estimate ext_F and sigma """
         par = self.par
         sol = self.sol
 
+        # Objective function to be minimized
         def deviation_ext(x):
             par.ext_F = x[0]
             par.sigma = x[1]
-            "calculating the deviation of the regression"
+            # Calculating the deviation of the regression
             self.solve_wF_vec()
             self.run_regression()
             sol.err = ((par.beta0_target - sol.beta0)**2+(par.beta1_target-sol.beta1)**2)
