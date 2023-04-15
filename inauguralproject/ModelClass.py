@@ -35,7 +35,11 @@ class Household:
         par.beta0_target = 0.4
         par.beta1_target = -0.1
 
-        # f. solution
+        # f. Extention
+        par.extention = False
+        par.ext_F = 1
+
+        # e. solution
         sol.LM_vec = np.zeros(par.wF_vec.size)
         sol.HM_vec = np.zeros(par.wF_vec.size)
         sol.LF_vec = np.zeros(par.wF_vec.size)
@@ -69,8 +73,9 @@ class Household:
         epsilon_ = 1+1/par.epsilon
         TM = LM+HM
         TF = LF+HF
-        disutility = par.nu*(TM**epsilon_/epsilon_+TF**epsilon_/epsilon_)
+        disutility = par.nu*(TM**epsilon_/epsilon_+TF**epsilon_/epsilon_)+par.extention*(par.ext_F*LF**epsilon_/epsilon_)
         
+
         return utility - disutility
 
     def solve_discrete(self,do_print=False):
@@ -183,7 +188,7 @@ class Household:
             return sol.err       
         bounds = ((0.5,1),(0.05,0.5)) # bounds chosen through trial and error
         guess = [0.75,0.3]
-        result = optimize.minimize(deviation, x0 = guess, method = 'Nelder-Mead', bounds=bounds, tol = 10e-6)
+        result = optimize.minimize(deviation, x0 = guess, method = 'Nelder-Mead', bounds=bounds, tol = 10e-8)
 
         #unpack results
         sol.alpha = result.x[0]
@@ -191,3 +196,26 @@ class Household:
         #print results
         print(f'Estimated alpha from data = {sol.alpha:6.4f}, and sigma = {sol.sigma:6.4f}. Deviation was = {sol.err}')
 
+    
+    def estimate_ext(self,alpha=0.5,sigma=None):
+        """ estimate ext_F and ext_M """
+        par = self.par
+        sol = self.sol
+
+        def deviation_ext(x):
+            par.ext_F = x[0]
+            par.sigma = x[1]
+            "calculating the deviation of the regression"
+            self.solve_wF_vec()
+            self.run_regression()
+            sol.err = ((par.beta0_target - sol.beta0)**2+(par.beta1_target-sol.beta1)**2)
+            return sol.err       
+        bounds = ((0,5),(0,1)) # bounds chosen through trial and error
+        guess = [1,0.5]
+        result = optimize.minimize(deviation_ext, x0 = guess, method = 'Nelder-Mead', bounds=bounds, tol = 10e-8)
+
+        #unpack results
+        sol.ext_F = result.x[0]
+        sol.sigma = result.x[1]
+        #print results
+        print(f'Estimated ext_F from data = {sol.ext_F:6.4f}, and sigma = {sol.sigma:6.4f} Deviation was = {sol.err:6.4f}')
